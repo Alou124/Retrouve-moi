@@ -1,0 +1,46 @@
+<!--
+  Fragment à coller dans pages/annonces.html, juste avant </body>,
+  et à charger avec : <script src="../assets/js/recherche.js"></script>
+-->
+
+<div class="modal fade" id="modalPaiement" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-lock"></i> Recherche supplémentaire</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="bi bi-search-heart display-4 text-primary mb-3"></i>
+        <p class="mb-1">Ta recherche gratuite a déjà été utilisée.</p>
+        <p class="fw-bold fs-5">150 FCFA pour continuer à chercher</p>
+        <p class="text-muted small">Paiement sécurisé via SaaSPay. Ton crédit est ajouté automatiquement après confirmation.</p>
+      </div>
+      <div class="modal-footer justify-content-center border-0 pb-4">
+        <button id="btn-payer-recherche" class="btn btn-primary px-4" onclick="lancerPaiementRecherche()">
+          Payer 150 FCFA
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--
+  Exemple d'intégration dans le formulaire de recherche (annonces.html) :
+
+  <script>
+    document.getElementById("form-recherche").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const peutChercher = await verifierQuotaRecherche();
+      if (!peutChercher) {
+        afficherModalPaiement();
+        return;
+      }
+
+      // Quota OK -> on exécute la recherche normalement
+      const { data } = await listerAnnonces({ recherche: document.getElementById("q").value });
+      // ... afficher les résultats
+    });
+  </script>
+-->

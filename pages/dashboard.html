@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon tableau de bord - RetrouveMoi</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="../assets/css/style.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="../index"><i class="bi bi-search-heart"></i> RetrouveMoi</a>
+      <div class="ms-auto d-flex gap-2 align-items-center">
+        <a href="annonces" class="btn btn-outline-primary btn-sm">Voir les annonces</a>
+        <a href="declarer" class="btn btn-primary btn-sm text-white">+ Déclarer un objet</a>
+        <button id="btn-deconnexion" class="btn btn-outline-secondary btn-sm">Déconnexion</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <h3 class="fw-bold mb-1">Mon tableau de bord</h3>
+    <p class="text-muted mb-3" id="info-quota">Chargement de tes informations...</p>
+
+    <div class="card shadow-sm mb-4" style="max-width: 480px;">
+      <div class="card-body">
+        <h6 class="fw-bold mb-2">Mon numéro de téléphone</h6>
+        <div id="alerte-tel" class="alert d-none py-2"></div>
+        <form id="form-telephone" class="d-flex gap-2">
+          <input type="tel" class="form-control" id="mon-telephone" placeholder="Ex : 77 123 45 67">
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </form>
+        <div class="form-text">Affiché aux personnes qui consultent tes annonces.</div>
+      </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-annonces">Mes annonces</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-messages">Messages reçus</button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="tab-annonces">
+        <div id="mes-annonces" class="row g-4">
+          <p class="text-center text-muted">Chargement...</p>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="tab-messages">
+        <div id="mes-messages" class="list-group">
+          <p class="text-center text-muted">Chargement...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/supabaseClient.js"></script>
+  <script>
+    let utilisateurActuel = null;
+
+    document.getElementById("btn-deconnexion").addEventListener("click", async () => {
+      await deconnecterUtilisateur();
+      window.location.href = "../index";
+    });
+
+    async function chargerQuota() {
+      const { data, error } = await supabaseClient
+        .from("profiles")
+        .select("recherche_gratuite_utilisee, credits_recherche, telephone")
+        .eq("id", utilisateurActuel.id)
+        .single();
+
+      const info = document.getElementById("info-quota");
+      if (error || !data) {
+        info.textContent = "";
+        return;
+      }
+
+      document.getElementById("mon-telephone").value = data.telephone || "";
+
+      if (!data.recherche_gratuite_utilisee) {
+        info.innerHTML = '<span class="badge bg-success">Ta recherche gratuite est disponible</span>';
+      } else if (data.credits_recherche > 0) {
+        info.innerHTML = `<span class="badge bg-primary">${data.credits_recherche} crédit(s) de recherche disponible(s)</span>`;
+      } else {
+        info.innerHTML = '<span class="badge bg-secondary">Aucun crédit disponible — 25 FCFA pour la prochaine recherche</span>';
+      }
+    }
+
+    document.getElementById("form-telephone").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const telephone = document.getElementById("mon-telephone").value.trim();
+      const alerte = document.getElementById("alerte-tel");
+
+      const { error } = await supabaseClient
+        .from("profiles")
+        .update({ telephone })
+        .eq("id", utilisateurActuel.id);
+
+      alerte.textContent = error ? "Erreur lors de l'enregistrement." : "Téléphone enregistré !";
+      alerte.className = `alert py-2 ${error ? "alert-danger" : "alert-success"}`;
+    });
+
+    function carteAnnonce(item) {
+      return `
+        <div class="col-md-4">
+          <div class="card item-card h-100">
+            <img src="${item.photo_url || 'https://via.placeholder.com/400x180?text=Photo'}" class="card-img-top" alt="${echapperHtml(item.titre)}">
+            <div class="card-body">
+              <span class="badge ${item.statut === 'perdu' ? 'badge-perdu' : 'badge-trouve'} mb-2">
+                ${item.statut === 'perdu' ? 'Perdu' : item.statut === 'trouve' ? 'Trouvé' : 'Restitué'}
+              </span>
+              <h5 class="card-title">${echapperHtml(item.titre)}</h5>
+              <p class="card-text text-muted small">${echapperHtml(item.lieu) || ''}</p>
+              <a href="annonce-detail?id=${item.id}" class="btn btn-sm btn-outline-primary">Voir</a>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    async function chargerMesAnnonces() {
+      const conteneur = document.getElementById("mes-annonces");
+      const { data, error } = await mesAnnonces(utilisateurActuel.id);
+
+      if (error) {
+        conteneur.innerHTML = '<p class="text-center text-danger">Erreur de chargement.</p>';
+        return;
+      }
+      if (!data || data.length === 0) {
+        conteneur.innerHTML = `
+          <div class="text-center py-5">
+            <p class="text-muted mb-3">Tu n'as encore publié aucune annonce.</p>
+            <a href="declarer" class="btn btn-primary">Déclarer un objet</a>
+          </div>`;
+        return;
+      }
+      conteneur.innerHTML = data.map(carteAnnonce).join("");
+    }
+
+    async function chargerMesMessages() {
+      const conteneur = document.getElementById("mes-messages");
+
+      const { data, error } = await supabaseClient
+        .from("messages")
+        .select("*, items(titre)")
+        .eq("destinataire_id", utilisateurActuel.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        conteneur.innerHTML = '<p class="text-center text-danger">Erreur de chargement.</p>';
+        return;
+      }
+      if (!data || data.length === 0) {
+        conteneur.innerHTML = '<p class="text-center text-muted py-4">Aucun message reçu pour le moment.</p>';
+        return;
+      }
+
+      conteneur.innerHTML = data.map(msg => `
+        <div class="list-group-item">
+          <div class="d-flex justify-content-between">
+            <strong>À propos de : ${echapperHtml(msg.items?.titre) || 'Annonce supprimée'}</strong>
+            <small class="text-muted">${new Date(msg.created_at).toLocaleDateString('fr-FR')}</small>
+          </div>
+          <p class="mb-0 mt-1">${echapperHtml(msg.contenu)}</p>
+        </div>
+      `).join("");
+    }
+
+    (async () => {
+      utilisateurActuel = await protegerPage();
+      await Promise.all([chargerQuota(), chargerMesAnnonces(), chargerMesMessages()]);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+/* ============================================
+   RETROUVEMOI — Design tokens
+   Palette inspirée de l'idée de "retrouver la lumière" :
+   fond papier chaud, encre indigo, accent ambre (l'objet qu'on
+   remet en lumière), teal pour "trouvé", terracotta pour "perdu".
+   ============================================ */
+:root {
+  --op-bg: #FAF8F3;
+  --op-ink: #16213A;
+  --op-ink-soft: #4A5468;
+  --op-muted: #7A8194;
+  --op-border: #E7E2D6;
+
+  --op-amber: #F5A623;
+  --op-amber-dark: #D98C0F;
+  --op-teal: #2A9D8F;
+  --op-teal-dark: #218074;
+  --op-terracotta: #E4572E;
+  --op-terracotta-dark: #C4451F;
+
+  --op-radius-sm: 8px;
+  --op-radius-md: 14px;
+  --op-radius-pill: 999px;
+}
+
+body {
+  background-color: var(--op-bg);
+  color: var(--op-ink);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+h1, h2, h3, h4, h5, h6,
+.navbar-brand {
+  font-family: "Sora", "Inter", system-ui, sans-serif;
+  color: var(--op-ink);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+p { color: var(--op-ink-soft); }
+.text-muted { color: var(--op-muted) !important; }
+
+a { color: var(--op-teal-dark); }
+a:hover { color: var(--op-teal); }
+
+/* ============================================
+   NAVBAR
+   ============================================ */
+.navbar {
+  border-bottom: 1px solid var(--op-border);
+}
+
+.navbar-brand {
+  font-weight: 700;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.navbar-brand i { color: var(--op-amber); }
+
+/* ============================================
+   BOUTONS — forme pilule, un accent par intention
+   ============================================ */
+.btn {
+  border-radius: var(--op-radius-pill);
+  font-weight: 600;
+  padding: 0.55rem 1.3rem;
+  transition: transform 0.12s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+.btn:active { transform: scale(0.98); }
+
+.btn-primary {
+  background-color: var(--op-amber);
+  border-color: var(--op-amber);
+  color: var(--op-ink);
+}
+.btn-primary:hover, .btn-primary:focus {
+  background-color: var(--op-amber-dark);
+  border-color: var(--op-amber-dark);
+  color: white;
+}
+
+.btn-success {
+  background-color: var(--op-teal);
+  border-color: var(--op-teal);
+}
+.btn-success:hover {
+  background-color: var(--op-teal-dark);
+  border-color: var(--op-teal-dark);
+}
+
+.btn-outline-primary {
+  color: var(--op-ink);
+  border-color: var(--op-border);
+}
+.btn-outline-primary:hover {
+  background-color: var(--op-ink);
+  border-color: var(--op-ink);
+  color: white;
+}
+
+.btn-outline-danger, .btn-outline-success {
+  border-radius: var(--op-radius-pill);
+}
+
+.btn-lg { padding: 0.75rem 1.7rem; font-size: 1.05rem; }
+
+/* ============================================
+   BADGES statut (perdu / trouvé)
+   ============================================ */
+.badge {
+  border-radius: var(--op-radius-sm);
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.35em 0.7em;
+}
+.badge-perdu {
+  background-color: rgba(228, 87, 46, 0.12);
+  color: var(--op-terracotta-dark);
+}
+.badge-trouve {
+  background-color: rgba(42, 157, 143, 0.12);
+  color: var(--op-teal-dark);
+}
+
+/* ============================================
+   CARTES — bordure fine plutôt que l'ombre générique partout
+   ============================================ */
+.card {
+  border: 1px solid var(--op-border);
+  border-radius: var(--op-radius-md);
+  box-shadow: none;
+}
+
+.item-card {
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.item-card:hover {
+  border-color: var(--op-amber);
+  transform: translateY(-2px);
+}
+.item-card img {
+  height: 180px;
+  object-fit: cover;
+  border-top-left-radius: var(--op-radius-md);
+  border-top-right-radius: var(--op-radius-md);
+}
+
+.shadow-sm { box-shadow: 0 2px 10px rgba(22, 33, 58, 0.06) !important; }
+
+/* ============================================
+   HERO — un seul moment fort, pas de dégradé générique
+   ============================================ */
+.hero-section {
+  background-color: var(--op-ink);
+  color: white;
+  padding: 4.5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+.hero-section::before {
+  content: "";
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: var(--op-amber);
+  opacity: 0.15;
+}
+.hero-section h1 { color: white; }
+.hero-section .lead { color: rgba(255,255,255,0.75); }
+
+.hero-section .btn-light {
+  background-color: var(--op-amber);
+  border-color: var(--op-amber);
+  color: var(--op-ink);
+}
+.hero-section .btn-light:hover { background-color: var(--op-amber-dark); border-color: var(--op-amber-dark); }
+
+.hero-section .btn-outline-light {
+  border-color: rgba(255,255,255,0.4);
+}
+.hero-section .btn-outline-light:hover {
+  background-color: white;
+  color: var(--op-ink);
+}
+
+/* ============================================
+   FORMULAIRES
+   ============================================ */
+.form-control, .form-select {
+  border-radius: var(--op-radius-sm);
+  border-color: var(--op-border);
+  padding: 0.6rem 0.9rem;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--op-amber);
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.18);
+}
+.form-label { font-weight: 600; font-size: 0.9rem; color: var(--op-ink); }
+
+/* Accessibilité : focus clavier visible partout */
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--op-teal);
+  outline-offset: 2px;
+}
+
+/* Réduction des animations si préférence système */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+footer {
+  background-color: var(--op-ink) !important;
+}

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inscription - RetrouveMoi</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="../assets/css/style.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <nav class="navbar bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="../index"><i class="bi bi-search-heart"></i> RetrouveMoi</a>
+    </div>
+  </nav>
+
+  <div class="container" style="max-width: 480px;">
+    <div class="card shadow-sm mt-5">
+      <div class="card-body p-4">
+        <h3 class="text-center mb-4 fw-bold">Créer un compte</h3>
+
+        <div id="alerte" class="alert d-none" role="alert"></div>
+
+        <form id="form-inscription">
+          <div class="mb-3">
+            <label class="form-label">Nom complet</label>
+            <input type="text" class="form-control" id="nom" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Téléphone</label>
+            <input type="tel" class="form-control" id="telephone" placeholder="Ex : 77 123 45 67" required>
+            <div class="form-text">Pour que les autres utilisateurs puissent te contacter</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Mot de passe</label>
+            <input type="password" class="form-control" id="password" minlength="6" required>
+            <div class="form-text">6 caractères minimum</div>
+          </div>
+          <button type="submit" id="btn-submit" class="btn btn-primary w-100">S'inscrire</button>
+        </form>
+
+        <p class="text-center mt-3 mb-0 small">
+          Déjà un compte ? <a href="connexion">Se connecter</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/supabaseClient.js"></script>
+  <script>
+    function afficherAlerte(message, type = "danger") {
+      const alerte = document.getElementById("alerte");
+      alerte.textContent = message;
+      alerte.className = `alert alert-${type}`;
+    }
+
+    document.getElementById("form-inscription").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("btn-submit");
+      btn.disabled = true;
+      btn.textContent = "Création en cours...";
+
+      const nom = document.getElementById("nom").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const telephone = document.getElementById("telephone").value.trim();
+      const password = document.getElementById("password").value;
+
+      const { data, error } = await inscrireUtilisateur(email, password, nom, telephone);
+
+      if (error) {
+        afficherAlerte(error.message);
+        btn.disabled = false;
+        btn.textContent = "S'inscrire";
+        return;
+      }
+
+      afficherAlerte("Compte créé ! Redirection...", "success");
+      setTimeout(() => window.location.href = "annonces", 1200);
+    });
+  </script>
+</body>
+</html>
