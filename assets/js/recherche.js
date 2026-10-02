@@ -22,7 +22,7 @@ async function verifierQuotaRecherche() {
   return autorise;
 }
 
-// Ouvre le paiement SaaSPay de 25 FCFA
+// Ouvre le paiement Wave de 25 FCFA
 async function lancerPaiementRecherche() {
   const user = await getUtilisateurConnecte();
   if (!user) return;
@@ -47,7 +47,7 @@ async function lancerPaiementRecherche() {
       return;
     }
 
-    // Redirection vers la page de paiement SaaSPay
+    // Redirection vers la page de paiement Wave
     window.location.href = paymentUrl;
 
   } catch (err) {

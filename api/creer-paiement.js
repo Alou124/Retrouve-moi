@@ -1,7 +1,7 @@
 // api/creer-paiement.js
 // Fonction serveur Vercel — jamais exécutée dans le navigateur.
 // Reçoit l'utilisateur, crée une référence de paiement en base,
-// puis demande à SaaSPay un lien de paiement.
+// puis demande à Wave un lien de paiement (checkout session).
 
 const { createClient } = require("@supabase/supabase-js");
 
@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
     // Référence unique pour tracer ce paiement précis
     const reference = `RECH-${userId.slice(0, 8)}-${Date.now()}`;
 
-    // 1. On enregistre le paiement "en_attente" dans Supabase AVANT d'appeler SaaSPay
+    // 1. On enregistre le paiement "en_attente" dans Supabase AVANT d'appeler Wave
     const { error: dbError } = await supabaseAdmin
       .from("paiements_recherche")
       .insert([{
@@ -37,41 +37,41 @@ module.exports = async (req, res) => {
 
     if (dbError) throw dbError;
 
-    // 2. On appelle l'API SaaSPay pour créer la transaction
-    //    /!\ ADAPTE cette partie selon la doc exacte de ton compte SaaSPay
-    //    (URL, noms des champs, format de la réponse peuvent différer).
-    const saaspayResponse = await fetch("https://api.saaspay.com/v1/payments", {
+    // 2. On appelle l'API Wave Business pour créer la session de paiement
+    //    /!\ À RECONFIRMER avec la vraie doc Wave une fois ton compte Business
+    //    créé (dashboard Wave > Developers > Documentation) : noms de champs,
+    //    format exact de la réponse. Ce qui suit est basé sur le schéma
+    //    habituel de Wave Business (non vérifié sur une source officielle).
+    const waveResponse = await fetch("https://api.wave.com/v1/checkout/sessions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.SAASPAY_SECRET_KEY}`
+        "Authorization": `Bearer ${process.env.WAVE_API_KEY}`
       },
       body: JSON.stringify({
-        amount: 25,
+        amount: 25,              // Wave attend un entier en FCFA (pas de centimes)
         currency: "XOF",
-        reference: reference,
-        description: "Recherche supplémentaire - RetrouveMoi",
-        callback_url: `${process.env.SITE_URL}/api/webhook-saaspay`,
-        return_url: `${process.env.SITE_URL}/pages/annonces.html?paiement=succes`,
-        cancel_url: `${process.env.SITE_URL}/pages/annonces.html?paiement=annule`
+        client_reference: reference, // notre référence à nous, à retrouver dans le webhook
+        success_url: `${process.env.SITE_URL}/pages/annonces?paiement=succes`,
+        error_url: `${process.env.SITE_URL}/pages/annonces?paiement=annule`
       })
     });
 
-    const saaspayData = await saaspayResponse.json();
+    const waveData = await waveResponse.json();
 
-    if (!saaspayResponse.ok) {
-      throw new Error(saaspayData.message || "Erreur SaaSPay");
+    if (!waveResponse.ok) {
+      throw new Error(waveData.message || "Erreur Wave");
     }
 
-    // On stocke l'id de transaction SaaSPay pour le retrouver au webhook
+    // On stocke l'id de session Wave pour le retrouver au webhook
     await supabaseAdmin
       .from("paiements_recherche")
-      .update({ saaspay_transaction_id: saaspayData.id || saaspayData.transaction_id })
+      .update({ saaspay_transaction_id: waveData.id })
       .eq("reference", reference);
 
     // On renvoie l'URL de paiement au navigateur pour rediriger l'utilisateur
     return res.status(200).json({
-      paymentUrl: saaspayData.payment_url || saaspayData.checkout_url,
+      paymentUrl: waveData.wave_launch_url,
       reference
     });
 

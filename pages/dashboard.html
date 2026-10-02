@@ -27,7 +27,7 @@
 
   <div class="container py-4">
     <h3 class="fw-bold mb-1">Mon tableau de bord</h3>
-    <p class="text-muted mb-3" id="info-quota">Chargement de tes informations...</p>
+    <p class="text-muted mb-3">Gère tes annonces et tes messages.</p>
 
     <div class="card shadow-sm mb-4" style="max-width: 480px;">
       <div class="card-body">
@@ -75,28 +75,16 @@
       window.location.href = "../index";
     });
 
-    async function chargerQuota() {
+    async function chargerProfil() {
       const { data, error } = await supabaseClient
         .from("profiles")
-        .select("recherche_gratuite_utilisee, credits_recherche, telephone")
+        .select("telephone")
         .eq("id", utilisateurActuel.id)
         .single();
 
-      const info = document.getElementById("info-quota");
-      if (error || !data) {
-        info.textContent = "";
-        return;
-      }
+      if (error || !data) return;
 
       document.getElementById("mon-telephone").value = data.telephone || "";
-
-      if (!data.recherche_gratuite_utilisee) {
-        info.innerHTML = '<span class="badge bg-success">Ta recherche gratuite est disponible</span>';
-      } else if (data.credits_recherche > 0) {
-        info.innerHTML = `<span class="badge bg-primary">${data.credits_recherche} crédit(s) de recherche disponible(s)</span>`;
-      } else {
-        info.innerHTML = '<span class="badge bg-secondary">Aucun crédit disponible — 25 FCFA pour la prochaine recherche</span>';
-      }
     }
 
     document.getElementById("form-telephone").addEventListener("submit", async (e) => {
@@ -180,7 +168,7 @@
 
     (async () => {
       utilisateurActuel = await protegerPage();
-      await Promise.all([chargerQuota(), chargerMesAnnonces(), chargerMesMessages()]);
+      await Promise.all([chargerProfil(), chargerMesAnnonces(), chargerMesMessages()]);
     })();
   </script>
 </body>
