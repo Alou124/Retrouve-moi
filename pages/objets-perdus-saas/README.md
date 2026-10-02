@@ -3,7 +3,6 @@
 ## Stack
 - HTML + Bootstrap 5 + JavaScript vanilla
 - Supabase (Auth + Base de données Postgres + Storage)
-- SaaSPay (paiement de l'abonnement premium)
 - Vercel (hébergement)
 
 ## Structure du projet
@@ -22,8 +21,7 @@ objets-perdus-saas/
 │   ├── declarer.html
 │   ├── annonces.html
 │   ├── annonce-detail.html
-│   ├── dashboard.html
-│   └── premium.html
+│   └── dashboard.html
 └── supabase/
     └── schema.sql            # Script SQL complet (tables + RLS + storage)
 ```
@@ -50,58 +48,24 @@ vercel
 ```
 Vercel détecte automatiquement un site statique grâce à `vercel.json`.
 
-### 4. Intégrer SaaSPay (étape suivante)
-La page `pages/premium.html` contiendra le bouton d'abonnement SaaSPay, avec un webhook qui mettra à jour la table `subscriptions` côté Supabase.
-
 ## Tables de la base de données
 | Table | Rôle |
 |---|---|
-| `profiles` | Infos complémentaires utilisateur (nom, ville, statut premium) |
+| `profiles` | Infos complémentaires utilisateur (nom, téléphone, ville) |
 | `items` | Annonces d'objets perdus/trouvés |
 | `messages` | Messages entre utilisateurs pour la mise en relation |
-| `subscriptions` | Statut de l'abonnement premium (SaaSPay) |
 
-## Système de paiement à la recherche (1ère gratuite, puis 150 FCFA)
+## Recherche
+La recherche est gratuite et illimitée, sans paiement.
 
-### Comment ça marche
-- Chaque profil a `recherche_gratuite_utilisee` (bool) et `credits_recherche` (int)
-- La fonction SQL `consommer_recherche()` décide si la recherche est autorisée
-- Si le quota est épuisé → une modale s'affiche avec un bouton de paiement
-- Le paiement passe par 2 fonctions serveur Vercel (`/api/creer-paiement` et `/api/webhook-saaspay`),
-  **jamais directement depuis le navigateur** (les clés secrètes SaaSPay ne doivent jamais
-  être exposées côté client)
-
-### Variables à configurer sur Vercel
-Dans **Vercel > ton projet > Settings > Environment Variables**, ajoute :
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY` (trouvable dans Supabase > Settings > API — **jamais** dans le JS client)
-- `SAASPAY_SECRET_KEY`
-- `SAASPAY_WEBHOOK_SECRET`
-- `SITE_URL`
-
-### ⚠️ À adapter impérativement
-Je n'ai pas trouvé de documentation publique vérifiable pour "SaaSPay" au moment de la
-rédaction. Le code dans `api/creer-paiement.js` et `api/webhook-saaspay.js` est un
-**squelette générique** (structure classique : créer un paiement → rediriger → recevoir
-un webhook). Avant de mettre en production, va sur ton dashboard SaaSPay / leur doc
-développeur et vérifie :
-1. L'URL exacte de l'endpoint de création de paiement (`https://api.saaspay.com/v1/payments` est un exemple)
-2. Le nom exact des champs attendus (`amount`, `currency`, `reference`... peuvent différer)
-3. La méthode de vérification du webhook (header de signature, secret partagé, etc.)
-4. Le nom du champ renvoyé pour l'URL de paiement (`payment_url` vs `checkout_url`)
-
-Si tu me donnes un extrait de leur doc ou un exemple de requête/réponse, j'ajuste le code précisément.
-
-### Installer les dépendances avant de déployer
-```bash
-npm install
-```
+> Si tu avais déjà exécuté l'ancien `schema.sql`, exécute aussi `supabase/retirer-paiement.sql` une fois dans Supabase.
+> Si les numéros de téléphone ne s'enregistrent pas, exécute aussi `supabase/fix-telephone.sql` une fois dans Supabase.
 
 ## Prochaines étapes suggérées
 - ✅ inscription.html / connexion.html
 - ✅ declarer.html (formulaire + upload photo)
-- ✅ annonces.html (liste + filtres + quota de recherche)
+- ✅ annonces.html (liste + filtres)
 - ✅ annonce-detail.html (détail + messagerie)
-- ✅ dashboard.html (mes annonces + messages reçus + quota)
-- ⏳ Brancher les vraies clés Supabase et SaaSPay avant mise en production
+- ✅ dashboard.html (mes annonces + messages reçus)
+- ⏳ Brancher les vraies clés Supabase avant mise en production
 - ⏳ Espace admin (modération des annonces)

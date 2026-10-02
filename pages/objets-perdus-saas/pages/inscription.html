@@ -85,6 +85,14 @@
         return;
       }
 
+      // Sécurité : on enregistre aussi le téléphone directement dans le profil
+      if (data && data.session && data.user) {
+        const { error: errProfil } = await supabaseClient
+          .from("profiles")
+          .upsert({ id: data.user.id, full_name: nom, telephone });
+        if (errProfil) console.error("Erreur profil :", errProfil);
+      }
+
       afficherAlerte("Compte créé ! Redirection...", "success");
       setTimeout(() => window.location.href = "annonces", 1200);
     });

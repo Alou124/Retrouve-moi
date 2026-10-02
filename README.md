@@ -59,6 +59,7 @@ Vercel détecte automatiquement un site statique grâce à `vercel.json`.
 La recherche est gratuite et illimitée, sans paiement.
 
 > Si tu avais déjà exécuté l'ancien `schema.sql`, exécute aussi `supabase/retirer-paiement.sql` une fois dans Supabase.
+> Si les numéros de téléphone ne s'enregistrent pas, exécute aussi `supabase/fix-telephone.sql` une fois dans Supabase.
 
 ## Prochaines étapes suggérées
 - ✅ inscription.html / connexion.html

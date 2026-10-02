@@ -27,7 +27,7 @@
 
   <div class="container py-4">
     <h3 class="fw-bold mb-1">Mon tableau de bord</h3>
-    <p class="text-muted mb-3" id="info-quota">Chargement de tes informations...</p>
+    <p class="text-muted mb-3">Gère tes annonces et tes messages.</p>
 
     <div class="card shadow-sm mb-4" style="max-width: 480px;">
       <div class="card-body">
@@ -75,28 +75,16 @@
       window.location.href = "../index";
     });
 
-    async function chargerQuota() {
+    async function chargerProfil() {
       const { data, error } = await supabaseClient
         .from("profiles")
-        .select("recherche_gratuite_utilisee, credits_recherche, telephone")
+        .select("telephone")
         .eq("id", utilisateurActuel.id)
         .single();
 
-      const info = document.getElementById("info-quota");
-      if (error || !data) {
-        info.textContent = "";
-        return;
-      }
+      if (error || !data) return;
 
       document.getElementById("mon-telephone").value = data.telephone || "";
-
-      if (!data.recherche_gratuite_utilisee) {
-        info.innerHTML = '<span class="badge bg-success">Ta recherche gratuite est disponible</span>';
-      } else if (data.credits_recherche > 0) {
-        info.innerHTML = `<span class="badge bg-primary">${data.credits_recherche} crédit(s) de recherche disponible(s)</span>`;
-      } else {
-        info.innerHTML = '<span class="badge bg-secondary">Aucun crédit disponible — 150 FCFA pour la prochaine recherche</span>';
-      }
     }
 
     document.getElementById("form-telephone").addEventListener("submit", async (e) => {
@@ -104,13 +92,17 @@
       const telephone = document.getElementById("mon-telephone").value.trim();
       const alerte = document.getElementById("alerte-tel");
 
-      const { error } = await supabaseClient
+      // upsert : crée le profil s'il n'existe pas encore, sinon le met à jour
+      const { data, error } = await supabaseClient
         .from("profiles")
-        .update({ telephone })
-        .eq("id", utilisateurActuel.id);
+        .upsert({ id: utilisateurActuel.id, telephone })
+        .select();
 
-      alerte.textContent = error ? "Erreur lors de l'enregistrement." : "Téléphone enregistré !";
-      alerte.className = `alert py-2 ${error ? "alert-danger" : "alert-success"}`;
+      const echec = error || !data || data.length === 0;
+      if (error) console.error("Erreur profil :", error);
+
+      alerte.textContent = echec ? "Erreur lors de l'enregistrement." : "Téléphone enregistré !";
+      alerte.className = `alert py-2 ${echec ? "alert-danger" : "alert-success"}`;
     });
 
     function carteAnnonce(item) {
@@ -180,7 +172,7 @@
 
     (async () => {
       utilisateurActuel = await protegerPage();
-      await Promise.all([chargerQuota(), chargerMesAnnonces(), chargerMesMessages()]);
+      await Promise.all([chargerProfil(), chargerMesAnnonces(), chargerMesMessages()]);
     })();
   </script>
 </body>

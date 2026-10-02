@@ -80,6 +80,7 @@ alter table messages enable row level security;
 -- profiles : chacun voit tous les profils publics, mais ne modifie que le sien
 create policy "Profils visibles par tous" on profiles for select using (true);
 create policy "Modifier son propre profil" on profiles for update using (auth.uid() = id);
+create policy "Creer son propre profil" on profiles for insert with check (auth.uid() = id);
 
 -- items : visibles par tous, création/modif/suppression réservées au propriétaire
 create policy "Annonces visibles par tous" on items for select using (true);
